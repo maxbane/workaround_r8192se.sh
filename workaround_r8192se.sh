@@ -17,19 +17,45 @@ function printSummary {
 }
 
 function printUsage {
-    echo -e "USAGE: $0 [PINGHOST]\n"
+    echo -e "USAGE: $0 [-h] [-t SECS] [-s SECS] [-r SECS] [PINGHOST]\n"
     echo -e "PINGHOST optionally specifies the host to ping; if omitted, the default PINGHOST is $DEFAULTPINGHOST" | fold -s
+    echo -e "\nOPTIONS:"
+    echo -e "  -h:\t\tPrint this help and exit." | fold -s
+    echo -e "  -t SECS:\tSet the ping timeout in seconds." | fold -s
+    echo -e "  -s SECS:\tSet the sleep time in seconds between pings." | fold -s
+    echo -e "  -r SECS:\tSet the delay in seconds to wait for wifi reassociation after reloading the kernel module." | fold -s
 }
 
-if [ "$1" = "-h" ]; then
-    printSummary
-    echo
-    printUsage
-    exit 0
-fi
+# seconds to wait for ping responses
+PINGTIMEOUT=2
+
+# seconds to wait in between ping attempts
+SLEEPTIME=4
+
+# seconds to wait for wifi reassociation after module reload
+# (in addition to SLEEPTIME)
+REASSOCTIME=5
+
+while getopts ":ht:s:r:" option; do
+    case $option in
+        h) printSummary; echo; printUsage; exit 0;;
+
+        t) PINGTIMEOUT=$OPTARG;;
+        s) SLEEPTIME=$OPTARG;;
+        r) REASSOCTIME=$OPTARG;;
+
+        \?) echo "Unknown option: -$OPTARG" >&2
+             exit 1;;
+
+        :) echo "Option -$OPTARG requires an argument." >&2
+             exit 1;;
+    esac
+done
+
+shift $((OPTIND-1))
 
 if [ `whoami` != "root" ]; then
-    echo "This script must be run as root."
+    echo "This script must be run as root." >&2
     exit 1
 fi
 
@@ -44,16 +70,6 @@ fi
 # to reload the module
 let STARTTIME=`date +%s`
 let NUMRELOADS=0
-
-# seconds to wait for ping responses
-PINGTIMEOUT=2
-
-# seconds to wait in between ping attempts
-SLEEPTIME=4
-
-# seconds to wait for wifi reassociation after module reload
-# (in addition to SLEEPTIME)
-REASSOCTIME=5
 
 function report {
     echo -e "$NUMRELOADS reloads in $((`date +%s` - STARTTIME)) seconds."
