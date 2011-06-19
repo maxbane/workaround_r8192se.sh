@@ -1,0 +1,20 @@
+workaround_r8192se.sh
+
+A simple bash script for working around buggy drivers for the Realtek 8192SE 
+wifi card. The 64 bit version of the official driver (kernel module 
+r8192se_pci) tends to drop connections randomly. This script regularly pings 
+your router (or any other host you specify) to check whether the connection is 
+still up; if not, it reloads the kernel module and waits for NetworkManager (or 
+whatever you use) to reassociate with your wireless access point. This usually 
+fixes things up until the next random disconnect. Joy!
+
+If the necessity of running this script just to use wifi on your 64 bit machine 
+bothers you, complain to Realtek, the authors of the buggy driver.
+
+Written in 2011 by Max Bane.
+Hereby released into the public domain.
+
+USAGE: ./workaround_r8192se.sh [PINGHOST]
+
+PINGHOST optionally specifies the host to ping; if omitted, the default 
+PINGHOST is 192.168.1.1
